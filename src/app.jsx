@@ -120,8 +120,9 @@ export default function App({ layout }) {
     saveSettings({ open: v });
   }
   function hideCompletely() {
+    // one-shot hide: the permanent “no tray” behavior lives in settings.hideTray
     setOpen(false);
-    saveSettings({ open: false, hideTray: true });
+    saveSettings({ open: false });
   }
   function switchTab(next) {
     setTab(next);
@@ -136,8 +137,8 @@ export default function App({ layout }) {
   if (!id) return null;
   if (!settings) return <div className="app" />;
 
-  // fullscreen: the video gets the whole screen, always
-  if (fs) return null;
+  // fullscreen with panel closed: the video gets the whole screen
+  if (fs && !open) return null;
 
   if (!open && settings.hideTray) return null;
 

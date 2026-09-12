@@ -30,6 +30,20 @@ function makeHost() {
   return { host, mount };
 }
 
+/* Page-level rules: fullscreen two-column layout, YouTube-Ask-panel style.
+   Only the player box is pinned left; the extension owns the right strip. */
+(function injectPageCss() {
+  if (document.getElementById('cyt-page-css')) return;
+  const s = document.createElement('style');
+  s.id = 'cyt-page-css';
+  s.textContent =
+    'html.cyt-fs-cols #movie_player {' +
+    ' width: calc(100vw - 420px) !important; left: 0 !important; right: auto !important; margin: 0 !important; }' +
+    'html.cyt-fs-cols .ytp-chrome-bottom, html.cyt-fs-cols .ytp-gradient-bottom {' +
+    ' width: calc(100vw - 420px) !important; }';
+  (document.head || document.documentElement).appendChild(s);
+})();
+
 injectPageBridge();
 const { host, mount } = makeHost();
 const layout = bootLayout(host);

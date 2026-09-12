@@ -88,6 +88,15 @@ textarea { resize: none; }
 
 :host(.is-chip) .app { display: none; }
 
+:host(.is-fs) .app {
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  border-radius: 0;
+  border: 0;
+  border-left: 1px solid var(--border);
+}
+
 .chip {
   display: none;
   width: 100%;

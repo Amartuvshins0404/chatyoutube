@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { currentVideoId } from './time.js';
 
 const HOST_ID = 'chatyoutube-root';
-const COL = 402;
+const COL = 420;
 
 export function useFullscreen() {
   const [fs, setFs] = useState(() => !!document.fullscreenElement);
@@ -55,13 +55,25 @@ export function bootLayout(host) {
     host.classList.toggle('is-open', open);
     host.classList.toggle('is-chip', !open);
 
-    /* fullscreen: show NOTHING over the video. Open/collapsed state is kept
-       in memory and restored the moment fullscreen ends. */
+    /* fullscreen, panel open: YouTube-style two columns — the page CSS pins the
+       player into the left column, we own the opaque right one. */
     if (fs) {
-      host.style.display = 'none';
+      if (open) {
+        host.classList.add('is-fs');
+        document.documentElement.classList.add('cyt-fs-cols');
+        host.style.cssText = `display:block;position:fixed;top:0;right:0;bottom:0;width:${COL}px;max-width:50vw;z-index:6000;`;
+      } else {
+        /* collapsed/hidden in fullscreen: nothing over the video */
+        host.classList.remove('is-fs');
+        document.documentElement.classList.remove('cyt-fs-cols');
+        host.style.display = 'none';
+      }
+      if (host.parentElement !== document.documentElement) document.documentElement.appendChild(host);
       setRelatedHidden(false);
       return;
     }
+    document.documentElement.classList.remove('cyt-fs-cols');
+    host.classList.remove('is-fs');
 
     /* completely hidden outside fullscreen: nothing on the page */
     if (!open && opts.hideTray) {
