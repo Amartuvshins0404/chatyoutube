@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, PhoneOff, Radio, RefreshCw, Hand } from 'lucide-react';
 import { RealtimeSession } from '../lib/live.js';
+import { listModels } from '../lib/api.js';
 import ModelPicker from './ModelPicker.jsx';
 import { cueIndex, usePlayhead } from '../lib/playhead.js';
 import { asText } from '../lib/transcript.js';
@@ -18,6 +19,23 @@ export default function Live({ settings, patchSettings, title, id, cues }) {
   const [needTap, setNeedTap] = useState(false);
   const [liveModel, setLiveModel] = useState(settings.liveModel || 'gpt-live-1');
   const [voice, setVoice] = useState(settings.voice || 'alloy');
+  const [candidates, setCandidates] = useState(null);
+
+  // which models on this key can actually do realtime voice?
+  useEffect(() => {
+    if (!settings.apiKey) { setCandidates(null); return; }
+    let dead = false;
+    listModels(settings.apiKey)
+      .then((ids) => { if (!dead) setCandidates(ids.filter((m) => /realtime|live/i.test(m))); })
+      .catch(() => { if (!dead) setCandidates([]); });
+    return () => { dead = true; };
+  }, [settings.apiKey]);
+
+  function pickModel(m) {
+    setLiveModel(m);
+    setErr('');
+    patchSettings({ liveModel: m });
+  }
 
   const sess = useRef(null);
   const audioRef = useRef(null);
@@ -132,6 +150,20 @@ export default function Live({ settings, patchSettings, title, id, cues }) {
                 </select>
               </div>
 
+              {candidates && !candidates.includes(liveModel) && (
+                <div className="err">
+                  {candidates.length
+                    ? <>“{liveModel}” isn’t realtime-capable on this key. One click to switch:</>
+                    : <>No realtime-capable models found on this key. Type a custom id if you know one.</>}
+                  {candidates.length > 0 && (
+                    <div className="chips">
+                      {candidates.slice(0, 4).map((c) => (
+                        <button key={c} className="suggest" onClick={() => pickModel(c)}>Use {c}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               {err && <div className="err">{err}</div>}
 
               <button className="btn btn-primary" onClick={connect} disabled={!settings.apiKey}>

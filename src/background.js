@@ -139,7 +139,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const t = await res.text().catch(() => '');
           let body = {};
           try { body = JSON.parse(t); } catch {}
-          sendResponse({ error: friendlyHttp(res.status, Object.keys(body).length ? body : { error: { message: t.slice(0, 300) } }, model) });
+          let message = friendlyHttp(res.status, Object.keys(body).length ? body : { error: { message: t.slice(0, 300) } }, model);
+          if (/realtime mode|not supported in realtime/i.test(t + message)) {
+            let sugg = '';
+            try {
+              const mr = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: `Bearer ${apiKey}` } });
+              if (mr.ok) {
+                const ids = ((await mr.json()).data || []).map((m) => m.id).filter((id) => /realtime|live/i.test(id));
+                if (ids.length) sugg = ' Realtime-capable models on this key: ' + ids.slice(0, 6).join(', ') + '.';
+              }
+            } catch {}
+            message = `“${model}” can’t do realtime voice.` + sugg + ' Pick one in the Live tab.';
+          }
+          sendResponse({ error: message });
           return;
         }
         sendResponse({ sdp: await res.text() });

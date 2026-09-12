@@ -46,7 +46,6 @@ export function bootLayout(host) {
   let open = true;
   let opts = { hideTray: false, fsCols: true };
   let scheduled = false;
-  let fsParent = null;
 
   function place() {
     applyTheme(host);
@@ -72,23 +71,15 @@ export function bootLayout(host) {
       return;
     }
 
-    /* fullscreen: clean right column inside the fullscreen element */
+    /* fullscreen: opaque right column; the page-level CSS letterboxes the video
+       into the left column. Never reparent into YouTube's player subtree —
+       its DOM cleanup removes foreign nodes. */
     if (fs) {
       host.style.cssText = `display:block;position:fixed;top:0;right:0;bottom:0;width:${COL}px;max-width:60vw;z-index:6000;`;
-      const canHold = fsEl && fsEl.tagName !== 'VIDEO' && fsEl !== document.documentElement;
-      if (canHold && !fsEl.contains(host)) {
-        fsParent = host.parentElement;
-        fsEl.appendChild(host);
-      }
+      if (host.parentElement !== document.documentElement) document.documentElement.appendChild(host);
       setRelatedHidden(false);
       return;
     }
-    if (fsParent && host.parentElement !== fsParent && document.contains(fsParent)) {
-      fsParent.appendChild(host);
-    } else if (!fsParent && host.parentElement === document.documentElement && isWatch() && document.querySelector('#secondary-inner')) {
-      /* fall through to docked placement below */
-    }
-    fsParent = null;
 
     const inner = document.querySelector('#secondary-inner');
     const watch = isWatch();

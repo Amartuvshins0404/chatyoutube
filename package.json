@@ -1,6 +1,6 @@
 {
   "name": "chatyoutube",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Chrome extension: transcript, AI summary, highlights, playhead-aware chat, full-duplex voice and pluggable web search for YouTube videos. BYO OpenAI key, no backend.",
   "license": "MIT",
   "author": "Amartuvshin",
