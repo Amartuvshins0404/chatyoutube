@@ -144,6 +144,11 @@ async function load() {
 
 keyEl.addEventListener('change', () => loadModels(keyEl.value.trim()));
 
+document.getElementById('open-panel').addEventListener('click', async () => {
+  await setSettings({ open: true });
+  msgEl.textContent = 'Panel will appear on the YouTube tab (Alt+Shift+C also works).';
+});
+
 document.getElementById('save').addEventListener('click', async () => {
   await setSettings({
     apiKey: keyEl.value.trim(),

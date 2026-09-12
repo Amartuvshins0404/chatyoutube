@@ -30,6 +30,19 @@ function makeHost() {
   return { host, mount };
 }
 
+/* Page-level rules: make fullscreen a real two-column layout. */
+(function injectPageCss() {
+  if (document.getElementById('cyt-page-css')) return;
+  const s = document.createElement('style');
+  s.id = 'cyt-page-css';
+  s.textContent =
+    'html.cyt-fs-cols #ytd-player, html.cyt-fs-cols #movie_player {' +
+    ' width: calc(100vw - 402px) !important; max-width: calc(100vw - 402px) !important; }' +
+    'html.cyt-fs-cols .ytp-chrome-bottom, html.cyt-fs-cols .ytp-gradient-bottom {' +
+    ' width: calc(100vw - 402px) !important; }';
+  (document.head || document.documentElement).appendChild(s);
+})();
+
 injectPageBridge();
 const { host, mount } = makeHost();
 const layout = bootLayout(host);

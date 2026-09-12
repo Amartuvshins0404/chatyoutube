@@ -17,10 +17,12 @@ function searchLabel(s) {
 export default function SettingsModal({ settings, onClose, onSave }) {
   const [apiKey, setApiKey] = useState(settings.apiKey);
   const [model, setModel] = useState(settings.model);
+  const [hideTray, setHideTray] = useState(!!settings.hideTray);
+  const [fsCols, setFsCols] = useState(settings.fsCols !== false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
-  async function save() {
+  async function saveWith(extra = {}) {
     const key = apiKey.trim();
     if (!key || !model) return;
     setBusy(true);
@@ -31,7 +33,7 @@ export default function SettingsModal({ settings, onClose, onSave }) {
       setBusy(false);
       return;
     }
-    await onSave({ apiKey: key, model });
+    await onSave({ apiKey: key, model, ...extra });
   }
 
   return (
@@ -50,11 +52,19 @@ export default function SettingsModal({ settings, onClose, onSave }) {
           <label>Model (live from your key)</label>
           <ModelPicker apiKey={apiKey.trim() || settings.apiKey} value={model} onChange={setModel} />
         </div>
+        <label className="mini">
+          <input type="checkbox" checked={hideTray} onChange={(e) => setHideTray(e.target.checked)} />
+          hide the tray icon completely when collapsed
+        </label>
+        <label className="mini">
+          <input type="checkbox" checked={fsCols} onChange={(e) => setFsCols(e.target.checked)} />
+          fullscreen: shrink the video into two columns
+        </label>
         <p className="hint" style={{ marginTop: 8 }}>
-          Web search: {searchLabel(settings)} — change it in the toolbar popup.
+          Web search: {searchLabel(settings)} — change it in the toolbar popup. Hidden panel returns with Alt+Shift+C.
         </p>
         {err && <div className="err">{err}</div>}
-        <button className="btn btn-primary" disabled={busy || !model} onClick={save}>
+        <button className="btn btn-primary" disabled={busy || !model} onClick={() => saveWith({ hideTray, fsCols })}>
           {busy ? <Loader2 size={15} className="spin" /> : null}
           {busy ? 'Verifying model…' : 'Save'}
         </button>

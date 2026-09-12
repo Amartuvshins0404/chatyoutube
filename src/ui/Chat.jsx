@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Globe, Loader2, MessagesSquare, Pause, Play, Send, Square } from 'lucide-react';
+import { Globe, Loader2, MessagesSquare, Pause, Play, Plus, Send, Square, Trash2 } from 'lucide-react';
 import { Md } from '../lib/markdown.jsx';
 import { complete } from '../lib/api.js';
 import { cueIndex, usePlayhead, wrapUser } from '../lib/playhead.js';
@@ -22,7 +22,7 @@ function Progress({ since, phase }) {
   return <span className="thinking" role="status"><Loader2 size={13} className="spin" /> {phase} · {seconds}s</span>;
 }
 
-export default function Chat({ system, model, cues, cached, onCached, effort, onEffort }) {
+export default function Chat({ system, model, cues, cached, onCached, effort, onEffort, sessions, sid, onSwitch, onNew, onDelete, onRename }) {
   const [msgs, setMsgs] = useState(cached || []);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -62,6 +62,7 @@ export default function Chat({ system, model, cues, cached, onCached, effort, on
     const question = (text ?? input).trim();
     if (!question && !retry) return;
     let history;
+    if (!retry && msgs.length === 0) onRename?.(question.slice(0, 32));
     if (retry) {
       // Replace the failed attempt, don't duplicate the user's question or shift its timestamp.
       const lastUser = msgs.map((m) => m.role).lastIndexOf('user');
@@ -130,6 +131,17 @@ export default function Chat({ system, model, cues, cached, onCached, effort, on
 
   return (
     <>
+      {sessions?.length > 0 && (
+        <div className="sessbar">
+          <select className="sess-select" value={sid} onChange={(e) => onSwitch(e.target.value)} aria-label="Chat session">
+            {sessions.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}{s.messages?.length ? ` (${s.messages.length})` : ''}</option>
+            ))}
+          </select>
+          <button className="icon-btn" title="New session" aria-label="New session" onClick={onNew}><Plus size={15} /></button>
+          <button className="icon-btn" title="Delete this session" aria-label="Delete this session" disabled={sessions.length < 2} onClick={onDelete}><Trash2 size={15} /></button>
+        </div>
+      )}
       {cues === null && <div className="banner" role="status">Loading the video transcript before sending…</div>}
       {cues && !cues.length && <div className="banner">No captions found. The AI knows your timestamp but has no transcript to read.</div>}
       <div className="scroll msgs" ref={scroller}>

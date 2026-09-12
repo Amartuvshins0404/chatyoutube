@@ -6,6 +6,8 @@ const DEFAULTS = {
   searchProvider: 'duckduckgo',
   searxUrl: '',
   effort: 'medium',
+  hideTray: false,
+  fsCols: true,
   lastTab: 'chat',
   open: true
 };
@@ -27,6 +29,19 @@ export async function getVideo(id) {
   const key = 'v:' + id;
   const o = await chrome.storage.local.get(key);
   return o[key] || null;
+}
+
+/* Multiple chat sessions per video, with migration from the single-session cache. */
+export async function getSessions(id) {
+  const v = await getVideo(id);
+  let sessions = v?.sessions;
+  if (!Array.isArray(sessions) || !sessions.length) {
+    sessions = [{ id: 's1', name: 'Session 1', messages: Array.isArray(v?.messages) ? v.messages : [] }];
+  }
+  const active = v?.activeSession && sessions.some((s) => s.id === v.activeSession)
+    ? v.activeSession
+    : sessions[0].id;
+  return { sessions, active };
 }
 
 export async function saveVideo(id, patch) {

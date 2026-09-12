@@ -14,9 +14,15 @@ The key lives in `chrome.storage.local` and is used only by the extension's serv
 |---|---|
 | **Transcript** | Captions from the YouTube player (InnerTube fallback). Follows the playhead, search, copy. |
 | **Summary** | One-click streaming briefing, cached per video so you never pay twice. |
-| **Chat** | Every question carries your exact second + the lines playing around it (`WATCHHEAD`). Answers cite clickable `[12:34]` timestamps. Reasoning-effort picker. Streaming with Stop. |
+| **Chat** | Every question carries your exact second + the lines playing around it (`WATCHHEAD`). Answers cite clickable `[12:34]` timestamps. Reasoning-effort picker. Streaming with Stop. **Multiple sessions per video** (switch/new/delete, auto-named from your first question). |
 | **Live** | Full-duplex voice with speech-to-speech models (`gpt-live-1`, `gpt-realtime`, …) over the OpenAI Realtime API / WebRTC. Barge-in, live captions, mic meter. |
 | **Highlights** | 5–8 jump-to moments extracted as JSON; click a card to seek. |
+
+Layout & visibility:
+
+- Docked in YouTube's right column on watch pages; floating panel elsewhere
+- **Fullscreen = true two-column**: the video shrinks and the panel becomes a clean right column (toggle in settings)
+- Collapse to a tray chip, or **hide completely** (EyeOff button); bring it back with `Alt+Shift+C`, the toolbar popup's *Open panel now*, or the small rescue pill that remains in fullscreen
 
 Web search (Chat only, model-triggered via tool calling):
 

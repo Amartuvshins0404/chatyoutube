@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { PanelRightClose, Play, Settings } from 'lucide-react';
+import { EyeOff, PanelRightClose, Play, Settings } from 'lucide-react';
 import { currentVideoId, pageTitle } from './lib/time.js';
 import { asText, loadTranscript, onPlayerMessage } from './lib/transcript.js';
-import { getSettings, getVideo, onSettingsChange, saveSettings, saveVideo } from './lib/storage.js';
+import { getSessions, getSettings, getVideo, onSettingsChange, saveSettings, saveVideo } from './lib/storage.js';
 import { systemPrompt } from './lib/api.js';
+import { useFullscreen } from './lib/youtube.js';
 import Setup from './ui/Setup.jsx';
 import SettingsModal from './ui/Settings.jsx';
 import Transcript from './ui/Transcript.jsx';
@@ -28,7 +29,7 @@ function useVideoId() {
       setId((cur) => (n !== cur ? n : cur));
     };
     const unsub = onPlayerMessage((p) => { if (p.videoId) setId(p.videoId); });
-    document.addEventListener('yt-navigate-finish', tick);
+    document.addEventListener('yt:navigate-finish', tick);
     document.addEventListener('yt-page-data-updated', tick);
     window.addEventListener('popstate', tick);
     const t = setInterval(tick, 1200);
@@ -45,6 +46,7 @@ function useVideoId() {
 
 export default function App({ layout }) {
   const id = useVideoId();
+  const fs = useFullscreen();
   const [settings, setSettings] = useState(null);
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState('chat');
@@ -53,6 +55,8 @@ export default function App({ layout }) {
   const [cues, setCues] = useState(null);
   const [cache, setCache] = useState(null);
   const [cacheReady, setCacheReady] = useState(false);
+  const [sessions, setSessions] = useState(null);
+  const [sid, setSid] = useState(null);
 
   useEffect(() => {
     getSettings().then((s) => {
@@ -64,14 +68,37 @@ export default function App({ layout }) {
   }, []);
 
   useEffect(() => { layout.setOpen(open); }, [open, layout]);
+  useEffect(() => {
+    layout.setOpts({ hideTray: !!settings?.hideTray, fsCols: settings?.fsCols !== false });
+  }, [settings?.hideTray, settings?.fsCols, layout]);
+
+  // Alt+Shift+C: bring the panel back from any state (even fully hidden)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.altKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+        const t = e.target;
+        if (t?.tagName === 'INPUT' || t?.tagName === 'TEXTAREA') return;
+        setOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
 
   useEffect(() => {
-    if (!id) { setCues([]); setCache(null); setCacheReady(true); return; }
+    if (!id) { setCues([]); setCache(null); setCacheReady(true); setSessions(null); setSid(null); return; }
     let dead = false;
     setCues(null);
     setCacheReady(false);
+    setSessions(null);
+    setSid(null);
     setTitle(pageTitle());
     getVideo(id).then((v) => { if (!dead) { setCache(v); setCacheReady(true); } });
+    getSessions(id).then(({ sessions: list, active }) => {
+      if (dead) return;
+      setSessions(list);
+      setSid(active);
+    });
     loadTranscript(id).then((list) => {
       if (dead) return;
       setCues(list);
@@ -92,14 +119,34 @@ export default function App({ layout }) {
     setOpen(v);
     saveSettings({ open: v });
   }
-
+  function hideCompletely() {
+    setOpen(false);
+    saveSettings({ open: false, hideTray: true });
+  }
   function switchTab(next) {
     setTab(next);
     saveSettings({ lastTab: next });
   }
+  function persistSessions(next, active) {
+    setSessions(next);
+    setSid(active);
+    saveVideo(id, { sessions: next, activeSession: active });
+  }
 
   if (!id) return null;
   if (!settings) return <div className="app" />;
+
+  const hidden = !open && settings.hideTray;
+
+  if (hidden && !fs) return null;
+
+  if (hidden && fs) {
+    return (
+      <button className="fs-pill" onClick={() => toggle(true)} title="Open ChatYouTube (Alt+Shift+C)" aria-label="Open ChatYouTube">
+        <Play size={15} fill="currentColor" />
+      </button>
+    );
+  }
 
   if (!open) {
     return (
@@ -111,6 +158,8 @@ export default function App({ layout }) {
     );
   }
 
+  const activeSess = sessions?.find((s) => s.id === sid);
+
   return (
     <div className="app">
       <header className="header">
@@ -121,6 +170,9 @@ export default function App({ layout }) {
         <div className="header-actions">
           <button className="icon-btn" title="Settings" aria-label="Settings" onClick={() => setShowSettings(true)}>
             <Settings size={16} />
+          </button>
+          <button className="icon-btn" title="Hide completely (Alt+Shift+C to bring back)" aria-label="Hide completely" onClick={hideCompletely}>
+            <EyeOff size={16} />
           </button>
           <button className="icon-btn" title="Collapse" aria-label="Collapse" onClick={() => toggle(false)}>
             <PanelRightClose size={16} />
@@ -152,16 +204,29 @@ export default function App({ layout }) {
                 onCached={(summary) => { setCache((c) => ({ ...c, summary })); saveVideo(id, { summary }); }}
               />
             )}
-            {tab === 'chat' && cacheReady && (
+            {tab === 'chat' && cacheReady && sessions && (
               <Chat
-                key={id}
+                key={id + ':' + sid}
                 system={system}
                 model={settings.model}
                 cues={cues}
-                cached={cache?.messages}
+                cached={activeSess?.messages}
+                sessions={sessions}
+                sid={sid}
+                onSwitch={(s) => persistSessions(sessions, s)}
+                onNew={() => {
+                  const n = { id: 's' + Date.now().toString(36), name: 'Session ' + (sessions.length + 1), messages: [] };
+                  persistSessions([...sessions, n], n.id);
+                }}
+                onDelete={() => {
+                  if (sessions.length < 2) return;
+                  const next = sessions.filter((s) => s.id !== sid);
+                  persistSessions(next, next[0].id);
+                }}
+                onRename={(name) => persistSessions(sessions.map((s) => (s.id === sid ? { ...s, name } : s)), sid)}
+                onCached={(messages) => persistSessions(sessions.map((s) => (s.id === sid ? { ...s, messages } : s)), sid)}
                 effort={settings.effort || 'medium'}
                 onEffort={(v) => { setSettings((c) => ({ ...c, effort: v })); saveSettings({ effort: v }); }}
-                onCached={(messages) => { setCache((c) => ({ ...c, messages })); saveVideo(id, { messages }); }}
               />
             )}
             {tab === 'live' && (
