@@ -1,0 +1,18 @@
+use_default_settings: true
+
+server:
+  secret_key: "REPLACE_ME_run_openssl_rand_hex_32"
+  bind_address: "127.0.0.1"   # served only through your reverse proxy
+  port: 8080
+  limiter: false              # REQUIRED for the extension's JSON API calls (it is not a browser)
+  public_instance: false
+  image_proxy: false
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json                    # REQUIRED: enables /search?format=json
+
+outgoing:
+  request_timeout: 6.0

@@ -1,0 +1,20 @@
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"   # loopback only — put Caddy/Nginx with TLS in front
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-data:/var/cache/searxng
+    environment:
+      - SEARXNG_BASE_URL=https://searx.example.com/   # CHANGE to your public URL
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    logging:
+      driver: json-file
+      options: { max-size: "1m", max-file: "3" }
+
+volumes:
+  searxng-data:

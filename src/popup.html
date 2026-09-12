@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ChatYouTube</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <span class="mark">▶</span>
+      <div>
+        <strong>ChatYouTube</strong>
+        <p>Transcript, summary, chat — on the video.</p>
+      </div>
+    </header>
+
+    <section id="status" class="card">Checking…</section>
+
+    <label>
+      OpenAI API key
+      <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" />
+    </label>
+    <label>
+      Model <span class="hint-inline" id="model-note"></span>
+      <input id="model" list="cyt-models" placeholder="gpt-4o-mini" spellcheck="false" autocomplete="off" />
+      <datalist id="cyt-models"></datalist>
+    </label>
+
+    <label>
+      Web search provider
+      <select id="provider">
+        <option value="duckduckgo">DuckDuckGo — built-in, free</option>
+        <option value="openai">OpenAI native web search — billed per search</option>
+        <option value="searxng">SearXNG — your own server</option>
+        <option value="off">Off</option>
+      </select>
+    </label>
+    <div id="searx-row" hidden>
+      <label>
+        SearXNG URL
+        <input id="searx" placeholder="https://searx.example.com" spellcheck="false" autocomplete="off" />
+      </label>
+      <label>
+        Basic auth (user:password)
+        <input id="searx-auth" placeholder="searx:…" spellcheck="false" autocomplete="off" />
+      </label>
+      <div class="row-btns">
+        <button id="connect-search" type="button">Connect & test</button>
+        <button id="revoke-search" type="button" class="ghost">Revoke access</button>
+      </div>
+    </div>
+    <p id="search-status" class="hint"></p>
+
+    <button id="save" type="button">Save</button>
+    <p id="msg" class="hint"></p>
+    <p class="hint">Open a YouTube video — the panel sits in the right column. Key is stored only in this browser.</p>
+    <script src="popup.js"></script>
+  </body>
+</html>
