@@ -18,7 +18,6 @@ export default function SettingsModal({ settings, onClose, onSave }) {
   const [apiKey, setApiKey] = useState(settings.apiKey);
   const [model, setModel] = useState(settings.model);
   const [hideTray, setHideTray] = useState(!!settings.hideTray);
-  const [fsCols, setFsCols] = useState(settings.fsCols !== false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -56,15 +55,11 @@ export default function SettingsModal({ settings, onClose, onSave }) {
           <input type="checkbox" checked={hideTray} onChange={(e) => setHideTray(e.target.checked)} />
           hide the tray icon completely when collapsed
         </label>
-        <label className="mini">
-          <input type="checkbox" checked={fsCols} onChange={(e) => setFsCols(e.target.checked)} />
-          fullscreen: shrink the video into two columns
-        </label>
         <p className="hint" style={{ marginTop: 8 }}>
-          Web search: {searchLabel(settings)} — change it in the toolbar popup. Hidden panel returns with Alt+Shift+C.
+          Web search: {searchLabel(settings)} — change it in the toolbar popup. Fullscreen always hides the panel; it returns when you exit. Hidden panel returns with Alt+Shift+C.
         </p>
         {err && <div className="err">{err}</div>}
-        <button className="btn btn-primary" disabled={busy || !model} onClick={() => saveWith({ hideTray, fsCols })}>
+        <button className="btn btn-primary" disabled={busy || !model} onClick={() => saveWith({ hideTray })}>
           {busy ? <Loader2 size={15} className="spin" /> : null}
           {busy ? 'Verifying model…' : 'Save'}
         </button>

@@ -30,20 +30,6 @@ function makeHost() {
   return { host, mount };
 }
 
-/* Page-level rules: make fullscreen a real two-column layout. */
-(function injectPageCss() {
-  if (document.getElementById('cyt-page-css')) return;
-  const s = document.createElement('style');
-  s.id = 'cyt-page-css';
-  s.textContent =
-    /* letterbox the video into the left column; panel covers the right strip */
-    'html.cyt-fs-cols video.html5-main-video {' +
-    ' width: calc(100vw - 402px) !important; left: 0 !important; right: auto !important; margin: 0 !important; }' +
-    'html.cyt-fs-cols .ytp-chrome-bottom, html.cyt-fs-cols .ytp-gradient-bottom {' +
-    ' width: calc(100vw - 402px) !important; }';
-  (document.head || document.documentElement).appendChild(s);
-})();
-
 injectPageBridge();
 const { host, mount } = makeHost();
 const layout = bootLayout(host);

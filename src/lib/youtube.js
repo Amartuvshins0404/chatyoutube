@@ -44,7 +44,7 @@ function applyTheme(host) {
 
 export function bootLayout(host) {
   let open = true;
-  let opts = { hideTray: false, fsCols: true };
+  let opts = { hideTray: false };
   let scheduled = false;
 
   function place() {
@@ -54,29 +54,18 @@ export function bootLayout(host) {
 
     host.classList.toggle('is-open', open);
     host.classList.toggle('is-chip', !open);
-    host.classList.toggle('is-fs', fs && open);
-    document.documentElement.classList.toggle('cyt-fs-cols', !!(fs && open && opts.fsCols));
 
-    /* completely hidden: nothing on the page… */
-    if (!open && opts.hideTray && !fs) {
+    /* fullscreen: show NOTHING over the video. Open/collapsed state is kept
+       in memory and restored the moment fullscreen ends. */
+    if (fs) {
       host.style.display = 'none';
       setRelatedHidden(false);
       return;
     }
-    /* …except a rescue pill while fullscreen, so the user is never stuck */
-    if (!open && opts.hideTray && fs) {
-      host.style.cssText = 'display:block;position:fixed;top:16px;right:16px;width:auto;z-index:6000;';
-      if (host.parentElement !== document.documentElement) document.documentElement.appendChild(host);
-      setRelatedHidden(false);
-      return;
-    }
 
-    /* fullscreen: opaque right column; the page-level CSS letterboxes the video
-       into the left column. Never reparent into YouTube's player subtree —
-       its DOM cleanup removes foreign nodes. */
-    if (fs) {
-      host.style.cssText = `display:block;position:fixed;top:0;right:0;bottom:0;width:${COL}px;max-width:60vw;z-index:6000;`;
-      if (host.parentElement !== document.documentElement) document.documentElement.appendChild(host);
+    /* completely hidden outside fullscreen: nothing on the page */
+    if (!open && opts.hideTray) {
+      host.style.display = 'none';
       setRelatedHidden(false);
       return;
     }

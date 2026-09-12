@@ -7,7 +7,6 @@ const DEFAULTS = {
   searxUrl: '',
   effort: 'medium',
   hideTray: false,
-  fsCols: true,
   lastTab: 'chat',
   open: true
 };

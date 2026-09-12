@@ -69,8 +69,8 @@ export default function App({ layout }) {
 
   useEffect(() => { layout.setOpen(open); }, [open, layout]);
   useEffect(() => {
-    layout.setOpts({ hideTray: !!settings?.hideTray, fsCols: settings?.fsCols !== false });
-  }, [settings?.hideTray, settings?.fsCols, layout]);
+    layout.setOpts({ hideTray: !!settings?.hideTray });
+  }, [settings?.hideTray, layout]);
 
   // Alt+Shift+C: bring the panel back from any state (even fully hidden)
   useEffect(() => {
@@ -136,17 +136,10 @@ export default function App({ layout }) {
   if (!id) return null;
   if (!settings) return <div className="app" />;
 
-  const hidden = !open && settings.hideTray;
+  // fullscreen: the video gets the whole screen, always
+  if (fs) return null;
 
-  if (hidden && !fs) return null;
-
-  if (hidden && fs) {
-    return (
-      <button className="fs-pill" onClick={() => toggle(true)} title="Open ChatYouTube (Alt+Shift+C)" aria-label="Open ChatYouTube">
-        <Play size={15} fill="currentColor" />
-      </button>
-    );
-  }
+  if (!open && settings.hideTray) return null;
 
   if (!open) {
     return (

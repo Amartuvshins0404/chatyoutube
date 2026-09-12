@@ -63,31 +63,6 @@ textarea { resize: none; }
   height: calc(100vh - 88px);
 }
 
-:host(.is-fs) .app {
-  height: 100%;
-  max-height: none;
-  min-height: 0;
-  border-radius: 0;
-  border: 0;
-  border-left: 1px solid var(--border);
-}
-
-.fs-pill {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, .55);
-  border: 1px solid rgba(255, 255, 255, .28);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  backdrop-filter: blur(6px);
-}
-.fs-pill:hover { background: rgba(0, 0, 0, .8); }
-
 .sessbar {
   display: flex;
   gap: 4px;

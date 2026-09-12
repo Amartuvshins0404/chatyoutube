@@ -21,8 +21,8 @@ The key lives in `chrome.storage.local` and is used only by the extension's serv
 Layout & visibility:
 
 - Docked in YouTube's right column on watch pages; floating panel elsewhere
-- **Fullscreen = true two-column**: the video shrinks and the panel becomes a clean right column (toggle in settings)
-- Collapse to a tray chip, or **hide completely** (EyeOff button); bring it back with `Alt+Shift+C`, the toolbar popup's *Open panel now*, or the small rescue pill that remains in fullscreen
+- **Fullscreen = video only**: panel and tray fully hide while fullscreen; your open/collapsed state restores automatically on exit
+- Collapse to a tray chip, or **hide completely** (EyeOff button); bring it back with `Alt+Shift+C` or the toolbar popup's *Open panel now*
 
 Web search (Chat only, model-triggered via tool calling):
 
